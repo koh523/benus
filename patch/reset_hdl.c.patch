@@ -1,0 +1,68 @@
+Description: SoftDevice 使用時に ASPEN/LSPEN を無効化し、VTOR 書き換えをスキップ
+ する（SoftDevice API 経由で行うため）。また .data/.bss のシンボル名を
+ __data_start__ / _bss_start（リンカスクリプト側の名称）に合わせて変更する。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/kernel/sysdepend/cpu/core/armv7m/reset_hdl.c
++++ b/kernel/sysdepend/cpu/core/armv7m/reset_hdl.c
+@@ -29,10 +29,10 @@ EXPORT	void	*knl_lowmem_top;		// Head of area (Low address)
+ EXPORT	void	*knl_lowmem_limit;		// End of area (High address)
+ 
+ IMPORT	const void *__data_org;
+-IMPORT	const void *__data_start;
++IMPORT	const void *__data_start__;
+ IMPORT	const void *__data_end;
+-IMPORT	const void *__bss_start;
++IMPORT	const void *_bss_start;
+ IMPORT	const void *__bss_end;
+ #if USE_NOINIT
+ IMPORT	const void *__noinit_end;
+@@ -56,8 +56,10 @@ EXPORT void Reset_Handler(void)
+ 	for(i=0; i < ((N_SYSVEC + N_INTVEC)); i++) {
+ 		*top++ = *src++;
+ 	}
++#if !SOFTDEVICE_PRESENT
+ 	/* Set Vector Table offset to SRAM */
+ 	*(_UW*)SCB_VTOR = (UW)exchdr_tbl;
++#endif
+ #endif
+ 
+ 	/* Load .data to ram */
+-	src = (UW*)&__data_org;;
+-	top = (UW*)&__data_start;
++	src = (UW*)&__data_org;
++	top = (UW*)&__data_start__;
+ 	end = (UW*)&__data_end;
+ 	while(top != end) {
+ 		*top++ = *src++;
+@@ -76,9 +78,9 @@ EXPORT void Reset_Handler(void)
+ #if USE_NOINIT
+ 	top = (UW*)&__noinit_end;
+ #else 
+-	top = (UW*)&__bss_start;
++	top = (UW*)&_bss_start;
+ #endif
+-	for(i = ((INT)&__bss_end - (INT)&__bss_start)/sizeof(UW); i > 0 ; i--) {
++	for(i = ((INT)&__bss_end - (INT)top)/sizeof(UW); i > 0 ; i--) {
+ 		*top++ = 0;
+ 	}
+ 
+@@ -139,8 +141,15 @@ EXPORT void Reset_Handler(void)
+ 
+ #if USE_FPU
+ 	/* Enable FPU */
+ 	*(_UW*)FPU_CPACR |= FPU_CPACR_FPUENABLE;
+-	*(_UW*)FPU_FPCCR |= (FPU_FPCCR_ASPEN | FPU_FPCCR_LSPEN);
++#if SOFTDEVICE_PRESENT
++	*(_UW*)FPU_FPCCR &= ~(FPU_FPCCR_ASPEN | FPU_FPCCR_LSPEN);
++#else
++	*(_UW*)FPU_FPCCR |= FPU_FPCCR_ASPEN;
++	*(_UW*)FPU_FPCCR &= ~FPU_FPCCR_LSPEN;
++#endif
+ #endif /* USE_FPU */
+ 
+ 	/* Startup Kernel */

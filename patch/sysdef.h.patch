@@ -1,0 +1,16 @@
+Description: SysTick の割込み優先度を 6 に変更し、SoftDevice のイベント割込み
+ (SWI2) を妨げないようにする。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/include/sys/sysdepend/cpu/nrf5/sysdef.h
++++ b/include/sys/sysdepend/cpu/nrf5/sysdef.h
+@@
+ #define INTPRI_MAX_EXTINT_PRI	1	/* Highest Ext. interrupt level */
+ #define INTPRI_SVC		0	/* SVCall */
+-#define INTPRI_SYSTICK		1	/* SysTick */
++#define INTPRI_SYSTICK		6	/* SysTick: must not preempt SoftDevice SWI2 (pri 6) */
+ #define INTPRI_PENDSV		7	/* PendSV */

@@ -1,0 +1,29 @@
+Description: DEVCNF_USE_BLENUS 有効時に blenus デバイスドライバの定義を追加する。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/device/include/dev_def.h
++++ b/device/include/dev_def.h
+@@
+ #else
+ #define DEV_IIC_ENABLE		0
+ #endif	/* DEVCNF_USE_IIC */
++
++#if DEVCNF_USE_BLENUS && DEV_BLENUS_UNITNM	/* Use BLE NUS device */
++#define DEV_BLENUS_ENABLE	1
++#else
++#define DEV_BLENUS_ENABLE	0
++#endif	/* DEVCNF_USE_BLENUS */
+ 
+ #else				/* Do not use sample device driver */
+ 
+ #define DEV_SER_ENABLE		0		// Serial communication device 
+ #define DEV_ADC_ENABLE		0		// A/D conversion device
+ #define DEV_IIC_ENABLE		0		// I2C communication device
++#define DEV_BLENUS_ENABLE	0		// BLE NUS device
+ 
+ #endif	/* USE_SDEV_DRV */
+ #endif	/* __DEVINC_DEVICE_H__ */

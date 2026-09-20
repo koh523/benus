@@ -1,0 +1,94 @@
+benus
+Copyright 2025-2026 koh aiaida
+
+This product contains benus's own work in the following paths.
+These are provided under the Apache License, Version 2.0 (hereinafter "Apache-2.0").
+For the full license text, see the accompanying LICENSE file.
+
+  device/blenus/
+  device/include/dev_blenus.h
+  app_sample/
+  patch/
+  build_make/blenus_overlay.mk (and the overlay files under build_make/mtkernel_3/)
+  etc/linker/microbit/tkernel_ble_wsd.ld
+  web/webbt_nus-simple.html
+
+--------------------------------------------------------------------------------
+
+About third-party software
+
+In addition to the above, this product includes the following third-party
+software. These are not covered by Apache-2.0 and are subject to their
+respective original license terms. The full text is given in the header
+comment at the top of each file.
+
+1. Nordic SoftDevice S113 v7.2.0 (binary), MBR, and related headers
+   Provider: Nordic Semiconductor ASA
+   License: Nordic 5-Clause License (full text in each header file)
+   Included path: components/softdevice/
+   Source: https://github.com/lancaster-university/codal-microbit-v2
+           (lib/softdevice.o and lib/mbr.o. The contents are identified by
+           the SHA-256 values below)
+     softdevice.o:
+       b2e30d0707422cb6789c941c4c30a8333f0a45afbd59cdfd6b63367b6e11f817
+     mbr.o:
+       e9fb2924734ea324e1976fb10a481ffb65f79c495c6f6fb14b99272fc1c86ba9
+   Note: This software is used and redistributed only as embedded in an
+         integrated circuit made by Nordic Semiconductor ASA (the nRF52833
+         on the micro:bit v2). It has not been modified.
+
+2. BLE modules etc. of the nRF5 SDK (ble_nus.c, ble_advertising.c,
+   nrf_sdh.c and others)
+   Provider: Nordic Semiconductor ASA
+   License: Nordic 5-Clause License (full text at the top of each file)
+   Included path: components/ble/, components/nrf5sdk/
+   Source: https://www.nordicsemi.com/Products/Development-software/nRF5-SDK
+   Note: This software is used only as embedded in an integrated circuit made
+         by Nordic Semiconductor ASA (same as above).
+
+3. Three headers derived from the nRF5 SDK (modified by benus): nrf.h,
+   sdk_common.h, util.h
+   Original work: Nordic Semiconductor ASA
+   Modified by: koh aiaida (koh@aiaida.jp), 2025
+   License: Nordic 5-Clause License (Nordic's original copyright notice and
+            full license text are kept in each file, and a notice of the
+            modifier is added at the end)
+   Included path: components/nrf5sdk/
+   Source: modified versions of the same nRF5 SDK as in 2. above
+
+4. CMSIS headers (core_cm4.h, cmsis_gcc.h and others)
+   Provider: Arm Limited
+   License: Apache License, Version 2.0 (Arm Limited's copyright notice is
+            given at the top of each file)
+   Included path: components/nrf5sdk/
+   Source: bundled with the same nRF5 SDK as in 2. above
+
+--------------------------------------------------------------------------------
+
+What this repository does not contain
+
+The μT-Kernel 3.0 (micro:bit version) distributed by PMC (Personal Media
+Corporation) is not included in this repository. To use benus, you need to
+obtain PMC's distribution (362_mbit_mtk3.zip) separately and apply the patches
+with the scripts under patch/. When using it, follow the distribution terms of
+Personal Media Corporation.
+
+About the prebuilt demo hex
+
+The prebuilt demo hex provided separately for the contest judging is not
+included in this repository. This hex contains the binaries of the third-party
+software 1 to 4 above (SoftDevice S113 and MBR, the BLE modules of the nRF5
+SDK, etc.) and the μT-Kernel 3.0 (micro:bit version) distributed by Personal
+Media Corporation, with benus's patches applied. Each is subject to the
+license terms given above, or to the distribution terms of Personal Media
+Corporation.
+
+--------------------------------------------------------------------------------
+
+About rights clearance
+
+The third-party software contained in this submitted work (benus) is used and
+included, as described above, within the scope of the license terms set by each
+provider, and the applicant warrants that the rights clearance for these has
+been handled properly. The submitted work will be kept available free of
+charge for at least one week after the award ceremony.

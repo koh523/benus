@@ -1,0 +1,23 @@
+Description: SoftDevice を呼ぶタスクの EXC_RETURN を 0xFFFFFFFD
+ (Thread モード / PSP) に変更する。割込みとタスクのスタックを分離するための対応。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/kernel/sysdepend/cpu/core/armv7m/cpu_task.h
++++ b/kernel/sysdepend/cpu/core/armv7m/cpu_task.h
+@@
+ 	ssp = tcb->isstack;
+ 	ssp--;
+ 
+ 	/* CPU context initialization */
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	/* Thread mode / PSP. SoftDevice IRQs stay on MSP (exception stack). */
++	ssp->exp_ret	= 0xFFFFFFFD;
++#else
+ 	ssp->exp_ret	= 0xFFFFFFF9;
++#endif
+ 	ssp->lr		= 0;
+ 	ssp->xpsr	= 0x01000000;		/* Initial SR */

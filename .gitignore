@@ -1,0 +1,7 @@
+*.o
+!components/softdevice/mbr.o
+!components/softdevice/softdevice.o
+*.zip
+.DS_Store
+__pycache__/
+*.pyc

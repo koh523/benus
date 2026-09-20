@@ -1,0 +1,381 @@
+<!--
+  webbt_nus-simple.html
+  Author: koh aiaida (koh@aiaida.jp)
+  Copyright (c) 2025-2026 koh aiaida
+
+  SPDX-License-Identifier: Apache-2.0
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>micro:bit v2 NUS通信 - 簡単版</title>
+    <!-- CDNを使用してセキュアコンテキストを確保 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container { padding: 2rem; }
+        .card {
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+        }
+        .log-container {
+            background: #1a1a2e;
+            color: #00ff41;
+            padding: 1rem;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 2px solid #16213e;
+        }
+        .log-entry { margin-bottom: 0.5rem; padding: 0.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .log-sent { color: #00bfff; }
+        .log-received { color: #00ff41; }
+        .log-error { color: #ff4757; }
+        .log-info { color: #ffa502; }
+        .timestamp { font-size: 11px; opacity: 0.7; margin-right: 8px; }
+        .sensor-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .sensor-card {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .sensor-value { font-size: 2rem; font-weight: bold; margin-top: 0.5rem; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-connected { background: #00ff41; }
+        .status-disconnected { background: #ff4757; }
+        @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+        .pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="card">
+            <div class="card-content has-text-centered">
+                <h1 class="title is-2">
+                    <i class="fas fa-bluetooth"></i>
+                    micro:bit v2 NUS通信
+                </h1>
+                <p class="subtitle">Nordic UART Service - nRF52833対応</p>
+                <div class="tags is-centered">
+                    <span class="tag is-info">Web Bluetooth API</span>
+                    <span class="tag is-primary">NUS</span>
+                    <span class="tag is-success">リアルタイム通信</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 接続ステータス -->
+        <div class="card">
+            <div class="card-content">
+                <div class="level">
+                    <div class="level-left">
+                        <div class="level-item">
+                            <span id="statusIndicator" class="status-indicator status-disconnected pulse"></span>
+                            <span id="connectionStatus">未接続</span>
+                        </div>
+                    </div>
+                    <div class="level-right">
+                        <div class="level-item">
+                            <div class="field is-grouped">
+                                <p class="control">
+                                    <button id="connectBtn" class="button is-success">
+                                        <span class="icon"><i class="fas fa-link"></i></span>
+                                        <span>接続</span>
+                                    </button>
+                                </p>
+                                <p class="control">
+                                    <button id="disconnectBtn" class="button is-danger" disabled>
+                                        <span class="icon"><i class="fas fa-unlink"></i></span>
+                                        <span>切断</span>
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- メッセージ送信 -->
+        <div class="card">
+            <div class="card-content">
+                <h3 class="title is-4">
+                    <i class="fas fa-paper-plane"></i>
+                    メッセージ送信
+                </h3>
+                <div class="field has-addons">
+                    <div class="control is-expanded">
+                        <input id="messageInput" class="input" type="text" placeholder="micro:bitに送信するメッセージ..." disabled>
+                    </div>
+                    <div class="control">
+                        <button id="sendBtn" class="button is-primary" disabled>
+                            <span class="icon"><i class="fas fa-send"></i></span>
+                            <span>送信</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通信ログ -->
+        <div class="card">
+            <div class="card-content">
+                <div class="level">
+                    <div class="level-left">
+                        <h3 class="title is-4">
+                            <i class="fas fa-terminal"></i>
+                            通信ログ
+                        </h3>
+                    </div>
+                    <div class="level-right">
+                        <button id="clearLogBtn" class="button is-light is-small">
+                            <span class="icon"><i class="fas fa-trash"></i></span>
+                            <span>クリア</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="logContainer" class="log-container">
+                    <div class="log-entry log-info">
+                        <span class="timestamp">[待機中]</span> micro:bit v2 NUS接続の準備完了
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+        const NUS_TX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Write
+        const NUS_RX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // Notify
+
+        let bluetoothDevice = null;
+        let nusService = null;
+        let txCharacteristic = null;
+        let rxCharacteristic = null;
+        let isConnected = false;
+
+        // 受信バッファ
+        let receiveBuffer = "";
+
+        // DOM
+        const statusIndicator = document.getElementById('statusIndicator');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const logContainer = document.getElementById('logContainer');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        const sensorSection = document.getElementById('sensorSection');
+
+        // 接続
+        connectBtn.addEventListener('click', connectToMicrobit);
+        disconnectBtn.addEventListener('click', disconnect);
+        sendBtn.addEventListener('click', sendMessage);
+        clearLogBtn.addEventListener('click', clearLog);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function connectToMicrobit() {
+            try {
+                log('🔍 micro:bit v2デバイスを検索中...', 'info');
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { name: "micro:bit2_UART" },
+                        { namePrefix: "BBC micro:bit" },
+                        { services: [NUS_SERVICE_UUID] }
+                    ],
+                    optionalServices: [NUS_SERVICE_UUID]
+                });
+                log(`✅ デバイス発見: ${bluetoothDevice.name}`, 'info');
+                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+                const server = await bluetoothDevice.gatt.connect();
+                nusService = await server.getPrimaryService(NUS_SERVICE_UUID);
+                txCharacteristic = await nusService.getCharacteristic(NUS_TX_CHAR_UUID);
+                rxCharacteristic = await nusService.getCharacteristic(NUS_RX_CHAR_UUID);
+
+                await rxCharacteristic.startNotifications();
+                rxCharacteristic.addEventListener('characteristicvaluechanged', handleReceived);
+
+                isConnected = true;
+                updateUI();
+                log('🎉 micro:bit v2 NUS通信が確立されました！', 'info');
+
+            } catch (error) {
+                log(`❌ 接続エラー: ${error.message}`, 'error');
+            }
+        }
+
+        async function disconnect() {
+            if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+                bluetoothDevice.gatt.disconnect();
+            }
+            onDisconnected();
+        }
+
+        function onDisconnected() {
+            isConnected = false;
+            bluetoothDevice = null;
+            nusService = null;
+            txCharacteristic = null;
+            rxCharacteristic = null;
+            updateUI();
+            log('🔌 デバイスが切断されました', 'info');
+        }
+
+        // メッセージ送信
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message + '\n');
+            await txCharacteristic.writeValue(data);
+            log(`📤 送信: ${message}`, 'sent');
+            messageInput.value = '';
+        }
+
+        // ★ 受信処理（修正版）
+        function handleReceived(event) {
+            try {
+                const decoder = new TextDecoder();
+                const chunk = decoder.decode(event.target.value);
+                receiveBuffer += chunk;
+
+                let lines = receiveBuffer.split('\n');
+                receiveBuffer = lines.pop(); // 最後の不完全な部分は保持
+
+                for (let line of lines) {
+                    const data = line.trim();
+                    if (data.length > 0) {
+                        log(`📥 受信: ${data}`, 'received');
+                        parseReceivedData(data);
+                    }
+                }
+            } catch (error) {
+                log(`❌ 受信エラー: ${error.message}`, 'error');
+            }
+        }
+
+        // データ解析
+        function parseReceivedData(data) {
+            try {
+                if (data.startsWith('{') && data.endsWith('}')) {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.type === 'sensors' && jsonData.data) {
+                        updateSensorData(jsonData.data);
+                    }
+                    return;
+                }
+                if (data.startsWith('SENSORS|')) {
+                    parseSensorString(data);
+                    return;
+                }
+                if (data.includes('TEMPERATURE:')) {
+                    const tempMatch = data.match(/(\d+)C?/);
+                    if (tempMatch) updateSensorValue('temperature', tempMatch[1] + '°C');
+                }
+            } catch (error) {
+                log(`⚠️ データ解析エラー: ${error.message}`, 'info');
+            }
+        }
+
+        function parseSensorString(data) {
+            const parts = data.split('|');
+            const sensorData = {};
+            for (let part of parts) {
+                if (part.includes('temp:')) {
+                    sensorData.temperature = part.split(':')[1] + '°C';
+                } else if (part.includes('light:')) {
+                    sensorData.light = part.split(':')[1];
+                }
+            }
+            updateSensorData(sensorData);
+        }
+
+        function updateSensorData(data) {
+            if (data.temperature !== undefined) {
+                updateSensorValue('temperature', data.temperature);
+            }
+            if (data.light_level !== undefined || data.light !== undefined) {
+                updateSensorValue('light', data.light_level || data.light);
+            }
+            updateSensorValue('lastUpdate', new Date().toLocaleTimeString());
+        }
+
+        function updateSensorValue(type, value) {
+            const element = document.getElementById(
+                type === 'temperature' ? 'tempValue' :
+                type === 'light' ? 'lightValue' : 'lastUpdate'
+            );
+            if (element) {
+                element.textContent = value;
+                sensorSection.style.display = 'block';
+            }
+        }
+
+        function updateUI() {
+            if (isConnected) {
+                statusIndicator.className = 'status-indicator status-connected';
+                connectionStatus.textContent = `接続中: ${bluetoothDevice.name}`;
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+            } else {
+                statusIndicator.className = 'status-indicator status-disconnected pulse';
+                connectionStatus.textContent = '未接続';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            }
+        }
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            logContainer.innerHTML = '';
+            log('📋 ログをクリアしました', 'info');
+        }
+
+        log('🚀 アプリケーション準備完了', 'info');
+        if (navigator.bluetooth) {
+            log('✅ Web Bluetooth API対応ブラウザです', 'info');
+        }
+    </script>
+</body>
+</html>

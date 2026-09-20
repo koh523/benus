@@ -1,0 +1,16 @@
+# Normalize text to LF in the repository and working tree.
+* text=auto eol=lf
+
+# Keep object / image / archive files untouched.
+*.o binary
+*.a binary
+*.elf binary
+*.out binary
+*.hex binary
+*.bin binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary

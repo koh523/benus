@@ -1,0 +1,41 @@
+Description: HLL / SysTick 割込みの入口で knl_fpca_clear を呼び、CONTROL.FPCA を
+ クリアする。拡張例外フレームの生成を防ぎ SoftDevice との衝突を避けるための対応。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/kernel/sysdepend/cpu/core/armv7m/interrupt.c
++++ b/kernel/sysdepend/cpu/core/armv7m/interrupt.c
+@@
+ Noinit(LOCAL FP knl_inthdr_tbl[N_INTVEC]);	/* HLL Interrupt Handler Table */
++
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++LOCAL void knl_fpca_clear(void)
++{
++	UW	control;
++
++	Asm("mrs %0, control" : "=r"(control));
++	control &= ~(1u << 2);
++	Asm("msr control, %0" :: "r"(control) : "memory");
++	Asm("isb" ::: "memory");
++}
++#endif
+ 
+ EXPORT void knl_hll_inthdr(void)
+ {
+ 	FP	inthdr;
+ 	UW	intno;
+ 
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	knl_fpca_clear();
++#endif
+ 	ENTER_TASK_INDEPENDENT;
+@@
+ EXPORT void knl_systim_inthdr(void)
+ {
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	knl_fpca_clear();
++#endif
+ 	ENTER_TASK_INDEPENDENT;

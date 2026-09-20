@@ -1,0 +1,127 @@
+Description: ディスパッチャの PendSV 処理で CONTROL.FPCA をクリアし、SoftDevice を
+ 呼ぶタスクを PSP、割込みを MSP に分離する。拡張例外フレームと SoftDevice の
+ 前提とのミスマッチ (INVSTATE) を防ぐための対応。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/kernel/sysdepend/cpu/core/armv7m/dispatch.S
++++ b/kernel/sysdepend/cpu/core/armv7m/dispatch.S
+@@
+ Csym(knl_dispatch_entry):	
+ /*----------------- Start dispatch processing. -----------------*/
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	mrs	r0, control
++	bic	r0, r0, #4			// CONTROL.FPCA (SD IRQ needs basic frame)
++	msr	control, r0
++	isb
++#endif
+ 	ldr	r0, =Csym(knl_dispatch_disabled)
+@@
+ 	cmp	r1, #0
+ 	bne	l_dispatch_000
+ 
++#if !(defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT)
+ 	ldr	sp, =(Csym(knl_tmp_stack) + TMP_STACK_SIZE)	// Set temporal stack
++#endif
+ 	b	l_dispatch_100
+ 
+ /*----------------- Save "ctxtsk" context. -----------------*/
+ l_dispatch_000:
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	mrs	r2, psp
++	stmdb	r2!, {r4-r11}
++	stmdb	r2!, {lr}
++#else
+ 	push	{r4-r11}
+ 	push	{lr}
++#endif
+ 
+ #if USE_FPU			// Save FPU register
+-	ldr	r2, [r1, #TCB_tskatr]
+-	ands	r2, r2, #TA_FPU
++	ldr	r3, [r1, #TCB_tskatr]
++	ands	r3, r3, #TA_FPU
+ 	beq	l_dispatch_010			// ctxtsk is not a TA_FPU attribute.
+ 
+ 	ands	r3,lr, #EXPRN_NO_FPU
+ 	bne	l_dispatch_010			// ctxtsk does not execute FPU instructions.
+ 
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	vstmdb	r2!, {s16-s31}			// Push FPU register (S16-S31)
++	stmdb	r2!, {r3}			// FPU usage flag
++#else
+ 	vpush	{s16-s31}			// Push FPU register (S15-S31)
+ 	push	{r3}				//FPU usage flag
++#endif
+ 
+ l_dispatch_010:			// End of FPU register save process
+ #endif /* USE_FPU */
+ 
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	str	r2, [r1, #TCB_tskctxb + CTXB_ssp]	// Save PSP to TCB
++#else
+ 	str	sp, [r1, #TCB_tskctxb + CTXB_ssp]	// Save 'ssp' to TCB
++#endif
+@@
+ 	ldr	r2, =0
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	mrs	r3, control
++	bic	r3, r3, #4
++	msr	control, r3
++	isb
++#endif
+ 	msr	basepri, r2			// Enable interruput
+@@
+ l_dispatch_120:			// Switch to 'schedtsk'
+ 	str	r8, [r0]			// ctxtsk = schedtsk
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	cpsid	i
++	ldr	r2, [r8, #TCB_tskctxb + CTXB_ssp]	// Task PSP
++#else
+ 	ldr	sp, [r8, #TCB_tskctxb + CTXB_ssp]	// Restore 'ssp' from TCB
++#endif
+@@
+ #if USE_FPU			// Restore FPU context
+ 	ldr	r0, [r8, #TCB_tskatr]
+ 	ands	r0, r0, #TA_FPU
+ 	beq	l_dispatch_200			// schedtsk is not a TA_FPU attribute.
+ 
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	ldr	r3, [r2]			// load FPU usage flag
++#else
+ 	ldr	r3,[sp]				// load FPU usage flag
++#endif
+ 	ands	r3, r3, #EXPRN_NO_FPU
+ 	bne	l_dispatch_200			// schedtsk does not execute FPU instructions.
+ 
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	ldmia	r2!, {r3}
++	vldmia	r2!, {s16-s31}			// Pop FPU register (S16-S31)
++#else
+ 	pop	{r3}
+ 	vpop	{s16-s31}			// Pop FPU register (S15-S31)
++#endif
+@@
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	ldmia	r2!, {lr}
++	ldmia	r2!, {r4-r11}
++	msr	psp, r2
++	isb
++#else
+ 	pop	{lr}
+ 	pop	{r4-r11}
++#endif
+@@
+ 	msr	basepri, r1			// Enable inperrupt
++#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
++	mrs	r2, control
++	bic	r2, r2, #4			// CONTROL.FPCA
++	msr	control, r2
++	isb
++	cpsie	i
++#endif
+ 
+ 	bx	lr

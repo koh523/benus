@@ -1,0 +1,19 @@
+Description: ベクタテーブルに SoftDevice の BLE イベント用ハンドラ
+ (SWI2_EGU2_IRQHandler) を登録する。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/kernel/sysdepend/cpu/nrf5/vector_tbl.c
++++ b/kernel/sysdepend/cpu/nrf5/vector_tbl.c
+@@ -68,7 +68,7 @@ void (* const vector_tbl[])()  __attribute__((section(".vector"))) = {
+ 	Default_Handler,			/* IRQ 19 */
+ 	Default_Handler,			/* IRQ 20 */
+ 	Default_Handler,			/* IRQ 21 */
+-	Default_Handler,			/* IRQ 22 */
++	SWI2_EGU2_IRQHandler,			/* IRQ 22 SoftDevice events */
+ 	Default_Handler,			/* IRQ 23 */
+ 	Default_Handler,			/* IRQ 24 */
+ 	Default_Handler,			/* IRQ 25 */

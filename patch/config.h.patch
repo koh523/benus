@@ -1,0 +1,21 @@
+Description: 例外スタック／テンポラリスタックのサイズを拡張する
+ (CNF_EXC_STACK_SIZE 4096, CNF_TMP_STACK_SIZE 2048)。
+ SoftDevice 呼び出しに必要なスタック余裕を確保するための変更。
+Author: koh aiaida <koh@aiaida.jp>
+Origin: PMC 362_mbit_mtk3 (micro:bit v2 用 μT-Kernel 3.0、パーソナルメディア株式会社配布)
+License-of-patch: この差分（追加・変更行）自体は koh aiaida が Apache-2.0 で提供する。
+ 適用対象のオリジナルファイルは PMC の配布条件（T-License 2.x）に従う。本パッチは
+ PMC のソースを同梱するものではなく、利用者自身が入手した PMC 配布物に適用することを
+ 前提とする。
+--- a/config/config.h
++++ b/config/config.h
+@@ -81,7 +81,7 @@
+ /* Stack size definition
+  */
+-#define CNF_EXC_STACK_SIZE	(2048)	/* Exception stack size */
+-#define	CNF_TMP_STACK_SIZE	(256)	/* Temporary stack size */
++#define CNF_EXC_STACK_SIZE	(4096)	/* Exception stack (SoftDevice IRQs use MSP) */
++#define	CNF_TMP_STACK_SIZE	(2048)	/* Temporary stack size (dispatch idle) */
+ 
+ 
+ /*---------------------------------------------------------------------- */

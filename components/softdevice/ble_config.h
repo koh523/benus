@@ -1,0 +1,56 @@
+/**
+ * @file ble_config.h
+ * @author koh aiaida (koh@aiaida.jp)
+ * @brief SoftDevice / BLE スタックのビルド時設定 (blenus 向け)。
+ * @date 2025-08-21
+ *
+ * @copyright Copyright (c) 2025-2026 koh aiaida
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#ifndef BLE_CONFIG_H__
+#define BLE_CONFIG_H__
+
+#define DNRF52833_XXAA  1
+
+#define NRF_SDH_ENABLED 1
+#define NRF_SDH_BLE_ENABLED 1
+
+#define SOFTDEVICE_PRESENT 1
+#define S113 1
+
+#define NRF_SDH_LOG_ENABLED             1
+#define NRF_SDH_CLOCK_LF_SRC            NRF_CLOCK_LF_SRC_SYNTH
+#define NRF_SDH_CLOCK_LF_RC_CTIV        0
+#define NRF_SDH_CLOCK_LF_RC_TEMP_CTIV   0
+#define NRF_SDH_CLOCK_LF_ACCURACY       7
+
+#define NRF_SDH_DISPATCH_MODEL 0
+
+#define NRF_SDH_BLE_OBSERVER_PRIO_LEVELS 4
+#define NRF_SDH_BLE_OBSERVER_PRIO_LEVELS 4
+
+#define NRF_BLE_GATT_BLE_OBSERVER_PRIO 1
+#define NRF_SDH_BLE_STACK_OBSERVER_PRIO 0
+#define NRF_SDH_BLE_PERIPHERAL_LINK_COUNT 1
+#define NRF_SDH_BLE_CENTRAL_LINK_COUNT 0
+#define NRF_SDH_BLE_GATT_MAX_MTU_SIZE 247
+#define NRF_SDH_BLE_GAP_DATA_LENGTH 251
+
+#define NRF_SDH_SOC_STACK_OBSERVER_PRIO 0
+#define NRF_SDH_STACK_OBSERVER_PRIO_LEVELS 2
+
+#define NRF_SDH_BLE_VS_UUID_COUNT 1
+
+#define NRF_SDH_BLE_SERVICE_CHANGED 0
+#define NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE 1408
+
+#define BLE_ADV_BLE_OBSERVER_PRIO 1
+#define BLE_CONN_STATE_BLE_OBSERVER_PRIO 0
+#define BLE_NUS_BLE_OBSERVER_PRIO 2
+
+#define NRF_SDH_BLE_TOTAL_LINK_COUNT    1
+#define NRF_SDH_BLE_GAP_EVENT_LENGTH    6
+
+#define APP_UART_ENABLED       1
+#endif //BLE_CONFIG_H__

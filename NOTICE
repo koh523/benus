@@ -1,0 +1,88 @@
+benus
+Copyright 2025-2026 koh aiaida
+
+本製品には、以下のパスに含まれる benus 独自の成果物が含まれます。
+これらは Apache License, Version 2.0（以下 "Apache-2.0"）の下で提供されます。
+ライセンス全文は同梱の LICENSE ファイルを参照してください。
+
+  device/blenus/
+  device/include/dev_blenus.h
+  app_sample/
+  patch/
+  build_make/blenus_overlay.mk（および build_make/mtkernel_3/ 配下の overlay 用ファイル）
+  etc/linker/microbit/tkernel_ble_wsd.ld
+  web/webbt_nus-simple.html
+
+--------------------------------------------------------------------------------
+
+第三者ソフトウェアについて
+
+上記以外に、本製品は以下の第三者ソフトウェアを同梱しています。これらは
+Apache-2.0 の対象ではなく、それぞれの元のライセンス条件に従います。全文は
+各ファイル冒頭のヘッダーコメントに記載されています。
+
+1. Nordic SoftDevice S113 v7.2.0（バイナリ）および MBR、関連ヘッダー
+   提供元: Nordic Semiconductor ASA
+   ライセンス: Nordic 5-Clause License（各ヘッダーファイルに全文を記載）
+   同梱パス: components/softdevice/
+   入手元: https://github.com/lancaster-university/codal-microbit-v2
+           （lib/softdevice.o、lib/mbr.o。以下の SHA-256 により内容を特定）
+     softdevice.o:
+       b2e30d0707422cb6789c941c4c30a8333f0a45afbd59cdfd6b63367b6e11f817
+     mbr.o:
+       e9fb2924734ea324e1976fb10a481ffb65f79c495c6f6fb14b99272fc1c86ba9
+   備考: 本ソフトウェアは、Nordic Semiconductor ASA 製の集積回路（micro:bit v2
+         搭載の nRF52833）に組み込む形でのみ使用・再配布しています。改変は
+         行っていません。
+
+2. nRF5 SDK の BLE モジュール等（ble_nus.c、ble_advertising.c、
+   nrf_sdh.c ほか）
+   提供元: Nordic Semiconductor ASA
+   ライセンス: Nordic 5-Clause License（各ファイル冒頭に全文を記載）
+   同梱パス: components/ble/、components/nrf5sdk/
+   入手元: https://www.nordicsemi.com/Products/Development-software/nRF5-SDK
+   備考: 本ソフトウェアは、Nordic Semiconductor ASA 製の集積回路（同上）に
+         組み込む形でのみ使用しています。
+
+3. nRF5 SDK 由来のヘッダー 3 点（benus が改変）: nrf.h、sdk_common.h、util.h
+   原著作: Nordic Semiconductor ASA
+   改変者: koh aiaida (koh@aiaida.jp), 2025
+   ライセンス: Nordic 5-Clause License（各ファイルに Nordic の原著作権表示と
+               ライセンス全文を保持したまま、末尾に改変者の表示を追加）
+   同梱パス: components/nrf5sdk/
+   入手元: 上記 2. と同じ nRF5 SDK を改編したもの
+
+4. CMSIS ヘッダー（core_cm4.h、cmsis_gcc.h ほか）
+   提供元: Arm Limited
+   ライセンス: Apache License, Version 2.0（各ファイル冒頭に Arm Limited の
+               著作権表示を記載）
+   同梱パス: components/nrf5sdk/
+   入手元: 上記 2. と同じ nRF5 SDK に同梱
+
+--------------------------------------------------------------------------------
+
+本リポジトリに含まないもの
+
+PMC（パーソナルメディア株式会社）配布の μT-Kernel 3.0（micro:bit 版）は、
+本リポジトリに同梱していません。適用にはパーソナルメディア株式会社の配布物
+（362_mbit_mtk3.zip）を別途入手し、patch/ 以下のスクリプトでパッチを適用する
+必要があります。利用にあたってはパーソナルメディア株式会社の配布条件に従って
+ください。
+
+ビルド済みのデモ hex について
+
+コンテスト審査用に別途提供するビルド済みのデモ hex は、本リポジトリには含めて
+いません。この hex には、上記 1〜4 の第三者ソフトウェアのバイナリ（SoftDevice
+S113 と MBR、nRF5 SDK の BLE モジュール等）と、パーソナルメディア株式会社配布の
+μT-Kernel 3.0（micro:bit 版）が、benus のパッチを適用した状態で含まれています。
+それぞれ、上記に記載のライセンス条件、またはパーソナルメディア株式会社の配布条件
+に従います。
+
+--------------------------------------------------------------------------------
+
+権利処理について
+
+本応募作品（benus）に含まれる第三者ソフトウェアは、上記のとおりそれぞれの
+提供元が定めるライセンス条件の範囲内で使用・同梱しており、応募者はこれらの
+権利処理が適正に行われていることを保証します。応募作品は、表彰式後 最低 1 週間
+は、無償で利用可能な状態を保ちます。
